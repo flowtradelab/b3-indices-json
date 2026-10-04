@@ -1,0 +1,44 @@
+name: Atualizar dados da B3
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 18h30 em Brasília (21h30 UTC), de segunda a sexta-feira.
+    - cron: "30 21 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-b3-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Executar testes
+        run: python -m unittest discover -s tests -v
+
+      - name: Atualizar JSONs
+        env:
+          B3_USER_AGENT: b3-indices-json GitHub Actions
+        run: python scripts/update_data.py
+
+      - name: Validar JSONs
+        run: python -m json.tool data/consolidated.json > /dev/null
+
+      - name: Publicar alterações
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "data: atualizar composições da B3"
+          file_pattern: "data/*.json data/indices/*.json data/history/**/*.json"
