@@ -221,18 +221,18 @@ def archive_history(index: str, period: Period, new_data: dict[str, Any], refere
     current_path = INDEX_DIR / f"{index}.json"
     previous = load_json(current_path)
     period_path = HISTORY_DIR / index / f"{period.identifier}.json"
-    if not period_path.exists():
-        write_json(period_path, new_data)
-        return
-    if not previous:
-        return
-    old_symbols = {item["ticker"] for item in previous.get("constituents", [])}
-    new_symbols = {item["ticker"] for item in new_data.get("constituents", [])}
-    if old_symbols != new_symbols:
+    if previous:
+        old_symbols = {item["ticker"] for item in previous.get("constituents", [])}
+        new_symbols = {item["ticker"] for item in new_data.get("constituents", [])}
+    else:
+        old_symbols = new_symbols = set()
+    if period_path.exists() and previous and old_symbols != new_symbols:
         fallback_date = reference_date or date.today().isoformat()
         change_path = HISTORY_DIR / index / f"{period.identifier}-before-{fallback_date}.json"
         if not change_path.exists():
             write_json(change_path, previous)
+    # The period snapshot tracks the latest official state until the period closes.
+    write_json(period_path, new_data)
 
 
 def build_index_document(
