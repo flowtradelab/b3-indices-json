@@ -199,6 +199,8 @@ def make_constituent(
     ticker = row.get("cod") or ""
     detail = company_detail or {}
     classification = split_classification(detail.get("industryClassification"))
+    if not classification["sector"]:
+        classification["sector"] = "Não classificado pela B3"
     return {
         "ticker": ticker,
         "company": detail.get("companyName") or (stock_row or {}).get("company") or row.get("asset"),
@@ -307,7 +309,12 @@ def update(*, workers: int = 8, selected_indexes: set[str] | None = None) -> Non
                 "cnpj": detail.get("cnpj"),
                 "company": detail.get("companyName"),
                 "trading_name": detail.get("tradingName"),
-                **split_classification(detail.get("industryClassification")),
+                **(
+                    lambda classification: {
+                        **classification,
+                        "sector": classification["sector"] or "Não classificado pela B3",
+                    }
+                )(split_classification(detail.get("industryClassification"))),
             }
             for issuer, detail in sorted(company_details.items())
         },

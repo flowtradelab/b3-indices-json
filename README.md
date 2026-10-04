@@ -35,7 +35,7 @@ Os índices são descobertos automaticamente a partir da relação oficial “a�
 }
 ```
 
-Campos não informados pela B3 ficam como `null`; isso ocorre principalmente com determinados recibos, fundos ou emissores estrangeiros.
+Quando a B3 não informa uma classificação para o emissor, `sector` recebe `"Não classificado pela B3"` e os níveis mais detalhados ficam como `null`; isso ocorre principalmente com determinados recibos, fundos ou emissores estrangeiros.
 
 ## Fontes e metodologia
 
